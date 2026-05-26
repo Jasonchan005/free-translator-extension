@@ -13,7 +13,7 @@ function createTooltip() {
   tooltipEl.innerHTML = `
     <div class="ft-header">
       <span class="ft-logo">🌐</span>
-      <span class="ft-title">FreeTranslator</span>
+      <span class="ft-title">Hover Translate by JCS Labs</span>
       <button class="ft-close">&times;</button>
     </div>
     <div class="ft-source"></div>

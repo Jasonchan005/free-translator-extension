@@ -9,7 +9,7 @@
     "128": "icons/icon128.png"
   },
   "action": {
-    "default_title": "Hover Translate",
+    "default_title": "Hover Translate by JCS Labs",
     "default_popup": "popup.html"
   },
   "permissions": [

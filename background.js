@@ -6,7 +6,7 @@ const MYMEMORY_EMAIL = 'translate@freetranslator.com';
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: 'translate-selection',
-    title: 'Translate with FreeTranslator',
+    title: 'Translate with Hover Translate',
     contexts: ['selection']
   });
 });
