@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Hover Translate - Instant Translation & Notes",
+  "name": "Hover Translate - Instant Translation & Notes by JCS Labs",
   "version": "1.0.0",
-  "description": "Hover over any text for instant translation. Take notes on useful translations. Supports 20+ languages. Powered by FreeTranslator.",
+  "description": "Hover over any text for instant translation. Take notes on useful translations. Supports 20+ languages. By JCS Labs.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
