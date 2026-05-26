@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { width: 360px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; }
+    .header { background: #2563eb; color: white; padding: 12px 16px; display: flex; align-items: center; gap: 8px; }
+    .header h1 { font-size: 15px; font-weight: 700; }
+    .tabs { display: flex; border-bottom: 2px solid #e2e8f0; }
+    .tab { flex: 1; padding: 10px; text-align: center; font-size: 13px; font-weight: 500; cursor: pointer; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+    .tab.active { color: #2563eb; border-bottom-color: #2563eb; }
+    .tab:hover { color: #2563eb; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .usage { padding: 10px 16px; font-size: 11px; color: #64748b; border-bottom: 1px solid #e2e8f0; }
+    .usage span { font-weight: 600; color: #2563eb; }
+    .lang-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .lang-row select { flex: 1; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; }
+    textarea { width: 100%; min-height: 70px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; resize: vertical; font-family: inherit; }
+    textarea:focus { outline: none; border-color: #2563eb; }
+    .btn { width: 100%; padding: 9px; background: #2563eb; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+    .btn:hover { background: #1d4ed8; }
+    .btn-sm { padding: 6px 12px; font-size: 11px; width: auto; display: inline-block; margin: 0; }
+    .result { margin-top: 8px; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; min-height: 36px; font-size: 13px; line-height: 1.5; display: none; }
+    .footer { padding: 10px 16px; border-top: 1px solid #e2e8f0; text-align: center; }
+    .footer a { color: #2563eb; text-decoration: none; font-size: 12px; font-weight: 500; }
+    
+    /* Notes */
+    .note-item { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 12px; }
+    .note-item:last-child { border-bottom: none; }
+    .note-original { color: #64748b; margin-bottom: 4px; }
+    .note-translated { color: #1e293b; font-weight: 500; margin-bottom: 6px; }
+    .note-meta { font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; }
+    .note-delete { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px; padding: 0 4px; }
+    .note-empty { text-align: center; padding: 40px 20px; color: #94a3b8; font-size: 13px; }
+    .note-actions { padding: 12px 16px; display: flex; gap: 8px; }
+    .note-actions .btn-sm { flex: 1; text-align: center; }
+    .pane { padding: 12px 16px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span>🌐</span>
+    <h1>FreeTranslator</h1>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="translate">Translate</div>
+    <div class="tab" data-tab="notes">Notes</div>
+  </div>
+
+  <!-- Translate Tab -->
+  <div class="tab-content active" id="tab-translate">
+    <div class="usage">Today: <span id="usageCount">0</span> / 50,000 chars</div>
+    <div class="pane">
+      <div class="lang-row">
+        <select id="srcLang">
+          <option value="auto">🌐 Auto Detect</option>
+          <option value="en">English</option>
+          <option value="zh-CN">Chinese</option>
+          <option value="ja">Japanese</option>
+          <option value="ko">Korean</option>
+          <option value="fr">French</option>
+          <option value="de">German</option>
+          <option value="es">Spanish</option>
+          <option value="vi">Vietnamese</option>
+        </select>
+        <span style="align-self:center">→</span>
+        <select id="tgtLang">
+          <option value="en">English</option>
+          <option value="zh-CN" selected>Chinese</option>
+          <option value="ja">Japanese</option>
+          <option value="ko">Korean</option>
+          <option value="fr">French</option>
+          <option value="de">German</option>
+          <option value="es">Spanish</option>
+          <option value="vi">Vietnamese</option>
+        </select>
+      </div>
+      <textarea id="inputText" placeholder="Enter text to translate..."></textarea>
+      <button class="btn" id="translateBtn">Translate</button>
+      <div class="result" id="resultBox"></div>
+    </div>
+  </div>
+
+  <!-- Notes Tab -->
+  <div class="tab-content" id="tab-notes">
+    <div class="note-actions">
+      <button class="btn-sm btn" id="exportBtn">📥 Export CSV</button>
+      <button class="btn-sm btn" id="clearNotesBtn" style="background:#ef4444;">🗑 Clear All</button>
+    </div>
+    <div id="notesList"></div>
+  </div>
+
+  <div class="footer">
+    <a href="https://free-translator-liart.vercel.app/" target="_blank">FreeTranslator Website →</a>
+  </div>
+
+  <script>
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+        if (tab.dataset.tab === 'notes') loadNotes();
+      });
+    });
+
+    // Load usage
+    chrome.runtime.sendMessage({ action: 'getUsage' }, (res) => {
+      if (res) document.getElementById('usageCount').textContent = res.usage;
+    });
+
+    // Translate
+    document.getElementById('translateBtn').addEventListener('click', () => {
+      const text = document.getElementById('inputText').value.trim();
+      if (!text) return;
+      const src = document.getElementById('srcLang').value;
+      const tgt = document.getElementById('tgtLang').value;
+      const btn = document.getElementById('translateBtn');
+      btn.textContent = 'Translating...'; btn.disabled = true;
+
+      chrome.runtime.sendMessage({ action: 'translate', text, source: src, target: tgt }, (res) => {
+        btn.textContent = 'Translate'; btn.disabled = false;
+        const box = document.getElementById('resultBox');
+        if (res && res.success) {
+          box.textContent = res.translation;
+          box.style.display = 'block';
+        } else {
+          box.textContent = 'Translation failed. Try again.';
+          box.style.display = 'block';
+        }
+      });
+    });
+
+    // Notes
+    function loadNotes() {
+      chrome.runtime.sendMessage({ action: 'listNotes' }, (res) => {
+        const list = document.getElementById('notesList');
+        if (!res || !res.notes || res.notes.length === 0) {
+          list.innerHTML = '<div class="note-empty">💡 No notes yet. Hover over text and click 💾 to save.</div>';
+          return;
+        }
+        list.innerHTML = res.notes.map(n => `
+          <div class="note-item">
+            <div class="note-original">${escapeHtml(n.original)}</div>
+            <div class="note-translated">${escapeHtml(n.translated)}</div>
+            <div class="note-meta">
+              <span>${n.pageTitle || ''} · ${new Date(n.time).toLocaleDateString()}</span>
+              <button class="note-delete" onclick="deleteNote(${n.id})">🗑</button>
+            </div>
+          </div>
+        `).join('');
+      });
+    }
+
+    function deleteNote(id) {
+      if (!confirm('Delete this note?')) return;
+      chrome.runtime.sendMessage({ action: 'deleteNote', id }, (res) => {
+        if (res.success) loadNotes();
+      });
+    }
+
+    function escapeHtml(text) {
+      const d = document.createElement('div');
+      d.textContent = text || '';
+      return d.innerHTML;
+    }
+
+    // Export
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      chrome.runtime.sendMessage({ action: 'exportNotes' }, (res) => {
+        if (res && res.csv) {
+          const blob = new Blob([res.csv], { type: 'text/csv;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'FreeTranslator-Notes.csv';
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      });
+    });
+
+    // Clear all
+    document.getElementById('clearNotesBtn').addEventListener('click', () => {
+      if (!confirm('Delete ALL saved notes? This cannot be undone.')) return;
+      chrome.storage.local.set({ notes: [] }, () => loadNotes());
+    });
+  </script>
+</body>
+</html>
