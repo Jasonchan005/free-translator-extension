@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "FreeTranslator - Translate Any Text",
+  "name": "Hover Translate - Instant Translation & Notes",
   "version": "1.0.0",
-  "description": "Translate any text on any page. Select text and translate, or hover over text for instant translation. Powered by FreeTranslator.",
+  "description": "Hover over any text for instant translation. Take notes on useful translations. Supports 20+ languages. Powered by FreeTranslator.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
   "action": {
-    "default_title": "FreeTranslator",
+    "default_title": "Hover Translate",
     "default_popup": "popup.html"
   },
   "permissions": [
