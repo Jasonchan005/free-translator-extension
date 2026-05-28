@@ -1,9 +1,32 @@
 // Content script for FreeTranslator extension
 
+let hoverEnabled = true;
 let hoverTimer = null;
 let tooltipEl = null;
 let lastHoveredText = '';
 let currentTranslation = { source: '', target: '', original: '', translated: '' };
+
+// Show toast notification
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.textContent = msg;
+  toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:2147483647;background:#1e293b;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;opacity:0;transition:opacity 0.2s;pointer-events:none;';
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => { toast.style.opacity = '1'; });
+  setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 2000);
+}
+
+// Listen for toggle command from background
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'toggleHover') {
+    hoverEnabled = !hoverEnabled;
+    if (!hoverEnabled && tooltipEl) tooltipEl.style.display = 'none';
+    showToast(hoverEnabled ? '✅ Hover Translate ON' : '⏸ Hover Translate OFF');
+  }
+  if (request.action === 'showTranslation') {
+    showTooltip(request.text, 100, 100);
+  }
+});
 
 // Create tooltip element
 function createTooltip() {
@@ -116,6 +139,7 @@ function showTooltip(text, x, y) {
 
 // Hover detection
 document.addEventListener('mouseover', (e) => {
+  if (!hoverEnabled) return;
   const target = e.target;
   if (!target || target.closest('#freetranslator-tooltip')) return;
   let text = '';
@@ -135,11 +159,4 @@ document.addEventListener('mouseover', (e) => {
 document.addEventListener('mouseout', (e) => {
   if (e.target.closest('#freetranslator-tooltip')) return;
   clearTimeout(hoverTimer);
-});
-
-// Listen for context menu translation
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'showTranslation') {
-    showTooltip(request.text, 100, 100);
-  }
 });

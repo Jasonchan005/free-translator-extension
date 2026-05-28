@@ -11,6 +11,17 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
+// Handle keyboard shortcut Alt+T to toggle hover translate
+chrome.commands.onCommand.addListener((command) => {
+  if (command === 'toggle-hover') {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: 'toggleHover' });
+      }
+    });
+  }
+});
+
 // Handle context menu click
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'translate-selection' && info.selectionText) {

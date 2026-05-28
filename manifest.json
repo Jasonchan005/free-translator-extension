@@ -21,6 +21,14 @@
     "https://api.mymemory.translated.net/*",
     "https://libretranslate.com/*"
   ],
+  "commands": {
+    "toggle-hover": {
+      "suggested_key": {
+        "default": "Alt+T"
+      },
+      "description": "Toggle hover translation on/off"
+    }
+  },
   "background": {
     "service_worker": "background.js"
   },
