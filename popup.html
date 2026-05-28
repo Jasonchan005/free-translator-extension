@@ -44,6 +44,17 @@
     <span>🌐</span>
     <h1>Hover Translate <span style="font-size:11px;font-weight:400;opacity:0.8;">by JCS Labs</span></h1>
   </div>
+  <!-- Hover Toggle -->
+  <div style="padding:10px 16px;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;">
+    <span style="font-size:12px;color:#64748b;">Hover Translation</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span id="hoverStatus" style="font-size:11px;color:#22c55e;font-weight:600;">ON</span>
+      <button id="hoverToggle" style="width:44px;height:24px;border-radius:12px;border:none;cursor:pointer;background:#22c55e;position:relative;transition:background 0.2s;">
+        <span id="hoverDot" style="position:absolute;top:2px;left:22px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
+      </button>
+    </div>
+  </div>
+
   <div class="tabs">
     <div class="tab active" data-tab="translate">Translate</div>
     <div class="tab" data-tab="notes">Notes</div>
@@ -95,9 +106,40 @@
   <div class="footer">
     <a href="https://free-translator-liart.vercel.app/" target="_blank">FreeTranslator Website →</a>
     <br><span style="color:#94a3b8;font-size:11px;">by JCS Labs</span>
+    <br><span style="color:#94a3b8;font-size:10px;">Shortcut: Alt+J</span>
   </div>
 
   <script>
+    // Hover toggle
+    function updateHoverUI(enabled) {
+      const toggle = document.getElementById('hoverToggle');
+      const dot = document.getElementById('hoverDot');
+      const status = document.getElementById('hoverStatus');
+      toggle.style.background = enabled ? '#22c55e' : '#cbd5e1';
+      dot.style.left = enabled ? '22px' : '2px';
+      status.textContent = enabled ? 'ON' : 'OFF';
+      status.style.color = enabled ? '#22c55e' : '#94a3b8';
+    }
+
+    // Load hover state
+    chrome.storage.local.get(['hoverEnabled'], (data) => {
+      updateHoverUI(data.hoverEnabled !== false);
+    });
+
+    document.getElementById('hoverToggle').addEventListener('click', () => {
+      chrome.storage.local.get(['hoverEnabled'], (data) => {
+        const newState = data.hoverEnabled === false;
+        chrome.storage.local.set({ hoverEnabled: newState });
+        updateHoverUI(newState);
+        // Notify all tabs
+        chrome.tabs.query({}, (tabs) => {
+          tabs.forEach(tab => {
+            chrome.tabs.sendMessage(tab.id, { action: 'setHover', enabled: newState }).catch(() => {});
+          });
+        });
+      });
+    });
+
     // Tab switching
     document.querySelectorAll('.tab').forEach(tab => {
       tab.addEventListener('click', () => {

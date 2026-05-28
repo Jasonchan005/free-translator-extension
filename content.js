@@ -6,6 +6,11 @@ let tooltipEl = null;
 let lastHoveredText = '';
 let currentTranslation = { source: '', target: '', original: '', translated: '' };
 
+// Load hover state from storage on init
+chrome.storage.local.get(['hoverEnabled'], (data) => {
+  if (data.hoverEnabled === false) hoverEnabled = false;
+});
+
 // Show toast notification
 function showToast(msg) {
   const toast = document.createElement('div');
@@ -20,6 +25,12 @@ function showToast(msg) {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'toggleHover') {
     hoverEnabled = !hoverEnabled;
+    chrome.storage.local.set({ hoverEnabled: hoverEnabled });
+    if (!hoverEnabled && tooltipEl) tooltipEl.style.display = 'none';
+    showToast(hoverEnabled ? '✅ Hover Translate ON' : '⏸ Hover Translate OFF');
+  }
+  if (request.action === 'setHover') {
+    hoverEnabled = request.enabled;
     if (!hoverEnabled && tooltipEl) tooltipEl.style.display = 'none';
     showToast(hoverEnabled ? '✅ Hover Translate ON' : '⏸ Hover Translate OFF');
   }

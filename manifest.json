@@ -24,7 +24,7 @@
   "commands": {
     "toggle-hover": {
       "suggested_key": {
-        "default": "Alt+T"
+        "default": "Alt+J"
       },
       "description": "Toggle hover translation on/off"
     }

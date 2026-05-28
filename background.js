@@ -4,23 +4,51 @@ const MYMEMORY_EMAIL = 'translate@freetranslator.com';
 
 // Create context menu on install
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: 'translate-selection',
-    title: 'Translate with Hover Translate',
-    contexts: ['selection']
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: 'translate-selection',
+      title: 'Translate with Hover Translate',
+      contexts: ['selection']
+    });
+    chrome.contextMenus.create({
+      id: 'toggle-hover-menu',
+      title: '⏸ Pause Hover Translation',
+      contexts: ['all']
+    });
   });
 });
 
-// Handle keyboard shortcut Alt+T to toggle hover translate
+// Also ensure menus exist on service worker start
+chrome.storage.local.get(['hoverEnabled'], (data) => {
+  const enabled = data.hoverEnabled !== false;
+  chrome.contextMenus.create({
+    id: 'toggle-hover-menu',
+    title: enabled ? '⏸ Pause Hover Translation' : '✅ Resume Hover Translation',
+    contexts: ['all']
+  }, () => {}); // ignore error if already exists
+});
+
+// Handle keyboard shortcut Alt+J to toggle hover translate
 chrome.commands.onCommand.addListener((command) => {
   if (command === 'toggle-hover') {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]) {
-        chrome.tabs.sendMessage(tabs[0].id, { action: 'toggleHover' });
-      }
+    chrome.storage.local.get(['hoverEnabled'], (data) => {
+      const newState = data.hoverEnabled === false;
+      chrome.storage.local.set({ hoverEnabled: newState });
+      updateContextMenuTitle(newState);
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) {
+          chrome.tabs.sendMessage(tabs[0].id, { action: 'setHover', enabled: newState });
+        }
+      });
     });
   }
 });
+
+function updateContextMenuTitle(enabled) {
+  chrome.contextMenus.update('toggle-hover-menu', {
+    title: enabled ? '⏸ Pause Hover Translation' : '✅ Resume Hover Translation'
+  });
+}
 
 // Handle context menu click
 chrome.contextMenus.onClicked.addListener((info, tab) => {
@@ -28,6 +56,14 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     chrome.tabs.sendMessage(tab.id, {
       action: 'showTranslation',
       text: info.selectionText
+    });
+  }
+  if (info.menuItemId === 'toggle-hover-menu') {
+    chrome.storage.local.get(['hoverEnabled'], (data) => {
+      const newState = data.hoverEnabled === false;
+      chrome.storage.local.set({ hoverEnabled: newState });
+      updateContextMenuTitle(newState);
+      chrome.tabs.sendMessage(tab.id, { action: 'setHover', enabled: newState });
     });
   }
 });
